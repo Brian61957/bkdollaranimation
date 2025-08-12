@@ -1,1 +1,1 @@
-// Final Day 3+ script.js placeholder
+console.log('✅ BK Dollar Animation - Day 3 script loaded successfully.');
