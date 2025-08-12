@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>BK Dollar Animation — Dashboard</title>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- Fonts: luxury header + Inter for UI -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet"/>
+
+  <!-- Icons -->
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</head>
+<body>
+  <!-- LOADER -->
+  <div id="loader" class="loader" role="status" aria-live="polite">
+    <div class="loader-box">
+      <div class="loader-brand">
+        <div class="brand-title">BK Dollar Animation</div>
+        <div class="brand-sub">BK Deriv Growth</div>
+      </div>
+      <div class="spinner" aria-hidden="true"></div>
+      <div id="loader-msg" class="loader-msg">Preparing markets...</div>
+    </div>
+  </div>
+
+  <!-- TOP BAR -->
+  <header class="topbar" role="banner">
+    <div class="left">
+      <a class="social" href="https://chat.whatsapp.com/I9pHdE0sNuTJbKMzgJ84GD?mode=ac_t" target="_blank" title="WhatsApp (join)"><i class="fab fa-whatsapp"></i></a>
+      <a class="social" href="https://t.me/+BsA8dvAh_lA2YzRk" target="_blank" title="Telegram (join)"><i class="fab fa-telegram"></i></a>
+      <div class="brand">
+        <span class="brand-name">BK Deriv Growth</span>
+      </div>
+    </div>
+
+    <div class="right">
+      <nav class="primary-nav" aria-label="Main">
+        <button class="menu-btn" data-target="dashboard">Dashboard</button>
+        <button class="menu-btn" data-target="bot-section">Bot Builder</button>
+        <button class="menu-btn" data-target="chart-section">Chart</button>
+        <button class="menu-btn" data-target="analysis-section">Analysis</button>
+        <button class="menu-btn" data-target="freebot-section">Free Bot</button>
+        <button class="menu-btn" data-target="tutorial-section">Tutorial</button>
+      </nav>
+
+      <!-- placeholder account info (replaced in Day 3 by real API) -->
+      <div class="acct">
+        <span class="acct-type">Demo USD</span> • <span class="acct-balance">$10,000.00</span>
+      </div>
+
+      <a class="signin" href="https://bkderivgrowth.carrd.co" target="_blank" rel="noopener noreferrer">Sign in to Deriv</a>
+      <button class="hamburger" aria-label="Open menu" aria-expanded="false"><i class="fas fa-bars"></i></button>
+    </div>
+  </header>
+
+  <!-- floating pills ~25% from top -->
+  <section class="top-nav-floating" aria-hidden="false">
+    <div class="top-nav-inner">
+      <a class="nav-pill" href="#dashboard">Dashboard</a>
+      <a class="nav-pill" href="#bot-section">Bot Builder</a>
+      <a class="nav-pill" href="#chart-section">Chart</a>
+      <a class="nav-pill" href="#analysis-section">Analysis Tool</a>
+      <a class="nav-pill" href="#freebot-section">Free Bot</a>
+      <a class="nav-pill" href="#tutorial-section">Tutorial</a>
+    </div>
+  </section>
+
+  <main>
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-inner">
+        <h1>Trade smarter with BK tools & community</h1>
+        <p class="sub">Signals, bots and tutorials to help you build consistent trading habits.</p>
+        <div class="hero-ctas">
+          <a class="cta primary" href="https://bkderivgrowth.carrd.co" target="_blank">Open Deriv (Affiliate)</a>
+          <a class="cta ghost" href="#tool-embed">Open Tool Placeholder</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- DASHBOARD -->
+    <section id="dashboard" class="dashboard container">
+      <div class="dash-header">
+        <div>
+          <h2>Dashboard</h2>
+          <p class="muted">Quick access to local resources, cloud, builder and strategies.</p>
+        </div>
+        <div class="small muted">Account: Demo USD • Balance: $10,000.00</div>
+      </div>
+
+      <div class="tiles" role="list">
+        <button class="tile" id="tile-local" data-action="local" role="listitem" aria-label="Local">
+          <div class="tile-ico"><i class="fa-regular fa-folder-open"></i></div>
+          <div>
+            <div class="tile-title">Local</div>
+            <div class="tile-sub">Upload & manage local bots</div>
+          </div>
+        </button>
+
+        <button class="tile" data-action="gdrive" role="listitem" aria-label="Google Drive">
+          <div class="tile-ico"><i class="fa-brands fa-google-drive"></i></div>
+          <div>
+            <div class="tile-title">Google Drive</div>
+            <div class="tile-sub">Sync strategies & configs</div>
+          </div>
+        </button>
+
+        <button class="tile" data-action="builder" role="listitem" aria-label="Bot Builder">
+          <div class="tile-ico"><i class="fa-solid fa-cogs"></i></div>
+          <div>
+            <div class="tile-title">Bot Builder</div>
+            <div class="tile-sub">Drag & drop strategy builder</div>
+          </div>
+        </button>
+
+        <button class="tile" data-action="quick" role="listitem" aria-label="Quick Strategy">
+          <div class="tile-ico"><i class="fa-solid fa-bolt"></i></div>
+          <div>
+            <div class="tile-title">Quick Strategy</div>
+            <div class="tile-sub">One-click ready strategies</div>
+          </div>
+        </button>
+      </div>
+    </section>
+
+    <!-- JOIN GROUPS BANNER -->
+    <section class="container join-banner">
+      <div class="join-inner">
+        <div class="join-text">
+          <strong>📢 Join Our Trading Community</strong>
+          <p class="muted">Get free daily signals, market analysis, hands-on bot classes and priority support.</p>
+          <p class="muted small">Sign up or log in to Deriv via our <a href="https://bkderivgrowth.carrd.co" target="_blank">official link</a> for full access.</p>
+        </div>
+        <div class="join-buttons">
+          <a class="pill" href="https://t.me/+BsA8dvAh_lA2YzRk" target="_blank"><i class="fab fa-telegram"></i> Join Telegram</a>
+          <a class="pill" href="https://chat.whatsapp.com/I9pHdE0sNuTJbKMzgJ84GD?mode=ac_t" target="_blank"><i class="fab fa-whatsapp"></i> Join WhatsApp</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- FREE BOTS -->
+    <section id="freebot-section" class="container free-bots">
+      <h3>Free bots — run instantly in Deriv Bot Builder</h3>
+      <p class="muted">Click <strong>Run in Bot Builder</strong> to open Deriv and load the bot automatically (no download required) — for hosted bots.</p>
+
+      <div class="bot-cards">
+        <!-- Bot 1 -->
+        <article class="bot-card" data-file="Digit Over 3.xml">
+          <div class="bot-thumb" aria-hidden="true">
+            <svg width="120" height="80" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg"><rect rx="8" width="120" height="80" fill="#fff8f8"/><text x="10" y="45" fill="#ff444f" font-family="Inter" font-size="12">Digit Over 3</text></svg>
+          </div>
+          <div class="bot-details">
+            <h4>Digit Over 3</h4>
+            <p class="muted small">A digit-over strategy tuned to small stakes and quick runs.</p>
+            <div class="bot-actions">
+              <button class="run-bot" data-file="Digit Over 3.xml">Run in Bot Builder</button>
+              <a class="download" href="./bots/Digit%20Over%203.xml" download>Download</a>
+            </div>
+          </div>
+        </article>
+
+        <!-- Bot 2 -->
+        <article class="bot-card" data-file="Leo_Even_Odd.xml">
+          <div class="bot-thumb" aria-hidden="true">
+            <svg width="120" height="80" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg"><rect rx="8" width="120" height="80" fill="#f7fff8"/><text x="10" y="45" fill="#19a974" font-family="Inter" font-size="12">Leo Even Odd</text></svg>
+          </div>
+          <div class="bot-details">
+            <h4>Leo — Even / Odd</h4>
+            <p class="muted small">Classic even/odd digit strategy with adaptive stake.</p>
+            <div class="bot-actions">
+              <button class="run-bot" data-file="Leo_Even_Odd.xml">Run in Bot Builder</button>
+              <a class="download" href="./bots/Leo_Even_Odd.xml" download>Download</a>
+            </div>
+          </div>
+        </article>
+
+        <!-- Bot 3 -->
+        <article class="bot-card" data-file="RF_Market-Monitor.xml">
+          <div class="bot-thumb" aria-hidden="true">
+            <svg width="120" height="80" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg"><rect rx="8" width="120" height="80" fill="#f5f8ff"/><text x="10" y="45" fill="#2563eb" font-family="Inter" font-size="12">RF Market Monitor</text></svg>
+          </div>
+          <div class="bot-details">
+            <h4>RF Market Monitor</h4>
+            <p class="muted small">Indicator-based risefall monitor for synthetic indices.</p>
+            <div class="bot-actions">
+              <button class="run-bot" data-file="RF_Market-Monitor.xml">Run in Bot Builder</button>
+              <a class="download" href="./bots/RF_Market-Monitor.xml" download>Download</a>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- TOOL / EMBED placeholder -->
+    <section id="tool-embed" class="container tool-area">
+      <h3>Analysis Tool</h3>
+      <div class="tool-frame" id="tool-frame">
+        <div class="tool-placeholder">
+          <p>Tool placeholder — paste your iframe or script here when ready.</p>
+          <small class="muted">Example:&nbsp;&lt;iframe src="https://your-tool-url" style="width:100%;height:600px;border:0"&gt;&lt;/iframe&gt;</small>
+        </div>
+      </div>
+    </section>
+
+    <!-- BOT CONTROL -->
+    <section class="bot-control container">
+      <div class="bot-left">
+        <div class="bot-status">
+          <span id="bot-indicator" class="indicator stopped"></span>
+          <div class="bot-text">
+            <div class="bot-title">Bot</div>
+            <div id="bot-state" class="muted small">Bot is stopped</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bot-center">
+        <button id="run-bot" class="run-btn">
+          <span class="run-icon"><i class="fa-solid fa-play"></i></span>
+          <span class="run-text">Run</span>
+        </button>
+      </div>
+
+      <div class="bot-right">
+        <div class="muted small">Risk: Trading carries risk. Use small amounts.</div>
+      </div>
+    </section>
+
+    <!-- anchors for topbar buttons -->
+    <section id="bot-section" class="container" style="display:none"></section>
+    <section id="chart-section" class="container" style="display:none"></section>
+    <section id="analysis-section" class="container" style="display:none"></section>
+    <section id="tutorial-section" class="container" style="display:none"></section>
+
+  </main>
+
+  <!-- LOCAL UPLOAD MODAL (clean, Deriv-style) -->
+  <div id="upload-modal" class="modal" aria-hidden="true" role="dialog" aria-labelledby="upload-title">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="upload-title">Upload Local Bot</h3>
+        <button id="modal-close" aria-label="Close modal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <p class="muted">Select a local <code>.xml</code> bot file. After selection you can:</p>
+        <ol class="muted small">
+          <li>Host it on your site (recommended) at <code>/bots/yourfile.xml</code> for instant Run-in-Bot-Builder;</li>
+          <li>Or open Deriv Bot Builder and upload the file manually.</li>
+        </ol>
+
+        <div class="file-row">
+          <input type="file" id="local-file" accept=".xml" />
+          <div id="file-name" class="small muted">No file chosen</div>
+        </div>
+
+        <div class="modal-actions">
+          <button id="modal-host-run" class="pill primary">Host & Run (if hosted)</button>
+          <button id="modal-open-deriv" class="pill ghost">Open in Deriv (manual upload)</button>
+        </div>
+
+        <div class="modal-note muted small" id="modal-note">
+          Tip: To make the file load automatically in Deriv, upload it to <code>/bots/</code> on your site (e.g. GitHub Pages or your hosting). The site will then open Deriv with the hosted file preloaded.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHAT PANEL (auto-open first visit) -->
+  <div id="chat-panel" class="chat-panel open" aria-hidden="false">
+    <div class="chat-header">
+      <strong>Community Chat</strong>
+      <button id="chat-close" aria-label="Close chat">&times;</button>
+    </div>
+
+    <div class="chat-tabs">
+      <button class="chat-tab active" data-tab="telegram"><i class="fab fa-telegram"></i> Telegram</button>
+      <button class="chat-tab" data-tab="whatsapp"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+    </div>
+
+    <div class="chat-body">
+      <div class="chat-tab-panel" id="telegram-panel">
+        <iframe src="https://t.me/+BsA8dvAh_lA2YzRk" sandbox="allow-scripts allow-same-origin" loading="lazy"></iframe>
+        <div class="chat-hint muted">If embed doesn't load, <a href="https://t.me/+BsA8dvAh_lA2YzRk" target="_blank">open Telegram</a>.</div>
+      </div>
+
+      <div class="chat-tab-panel" id="whatsapp-panel" style="display:none">
+        <div class="chat-actions">
+          <p class="muted">WhatsApp groups cannot always be embedded. Use the button below to open the group in WhatsApp/Web.</p>
+          <a class="pill" href="https://chat.whatsapp.com/I9pHdE0sNuTJbKMzgJ84GD?mode=ac_t" target="_blank"><i class="fab fa-whatsapp"></i> Open WhatsApp Group</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="page-footer">
+    <div class="f-left">© 2025 BK Deriv Growth</div>
+    <div class="f-right muted">Powered by Deriv Affiliate</div>
+  </footer>
+
+  <script src="script.js" defer></script>
+</body>
+</html>
