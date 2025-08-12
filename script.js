@@ -1,211 +1,303 @@
-// Day 2 UI wiring (loader, modal, bot-run links, chat panel, etc.)
+/* -------------------------
+  Basic Day 3 client-side logic
+  - App ID: 95972
+  - OAuth: oauth.deriv.com/oauth2/authorize
+  - WebSocket: wss://ws.derivws.com/websockets/v3?app_id=APP_ID
+---------------------------*/
 
-document.addEventListener('DOMContentLoaded', () => {
-  // --- Loader messages & branding ---
-  const loader = document.getElementById('loader');
-  const loaderMsg = document.getElementById('loader-msg');
-  const messages = [
-    'Printing profits...',
-    'Counting pips...',
-    'Sharpening strategies...',
-    'Fetching market magic...',
-    'Connecting community...'
-  ];
-  let mi = 0;
-  const msgInterval = setInterval(() => {
-    loaderMsg.textContent = messages[mi++ % messages.length];
-  }, 800);
+const APP_ID = 95972; // your Deriv App ID
+const REDIRECT_URI = "https://brian61957.github.io/bkdollaranimation/"; // must match Deriv app redirect
+const AFFILIATE_PAGE = "https://bkderivgrowth.carrd.co"; // opens in new tab before OAuth for tracking (you can add affiliate_token to OAuth URL later)
 
-  // auto-hide loader after ~2.5s (brand first)
+const signinBtn = document.getElementById('signin-btn');
+const logoutBtn = document.getElementById('logout-btn');
+const overlaySignin = document.getElementById('overlay-signin');
+const accountSummary = document.getElementById('account-summary');
+const acctType = document.getElementById('acct-type');
+const acctBalance = document.getElementById('acct-balance');
+const welcomeEl = document.getElementById('welcome');
+const welcomeText = document.getElementById('welcome-text');
+
+let ws; // websocket
+let currentToken = null;
+let currentAccount = null;
+
+/* Utility: parse query tokens returned by Deriv OAuth.
+   Deriv returns tokens like: ?acct1=...&token1=...&cur1=...
+*/
+function parseDerivReturn() {
+  const params = new URLSearchParams(window.location.search);
+  const tokens = [];
+  // check up to 6 accounts possible
+  for (let i = 1; i <= 6; i++) {
+    const t = params.get(`token${i}`);
+    const a = params.get(`acct${i}`);
+    const c = params.get(`cur${i}`);
+    if (t && a) tokens.push({ token: t, account: a, currency: c || '' });
+  }
+  return tokens;
+}
+
+/* Build OAuth URL. If you later have an affiliate_token and utm_campaign,
+   you can append &affiliate_token=...&utm_campaign=...
+*/
+function buildOAuthUrl() {
+  let url = `https://oauth.deriv.com/oauth2/authorize?app_id=${APP_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
+  // scope isn't required for basic interactive flow, but leave room:
+  url += '&scope=read';
+  return url;
+}
+
+/* Start login: open affiliate page in new tab then go to oauth */
+function startLogin() {
+  // Open affiliate page in new tab so tracking gets applied (best-effort)
+  try { window.open(AFFILIATE_PAGE, '_blank', 'noopener'); } catch (e) {}
+  // Then redirect current tab to OAuth
   setTimeout(() => {
-    clearInterval(msgInterval);
-    loader.style.transition = 'opacity .4s, visibility .4s';
-    loader.style.opacity = '0';
-    setTimeout(()=> loader.remove(), 500);
+    window.location.href = buildOAuthUrl();
+  }, 500);
+}
 
-    // fade-in subtle animations for tiles & bots
-    document.querySelectorAll('.tile, .bot-card').forEach((el, i) => {
-      el.style.opacity = '0';
-      el.style.transform = 'translateY(14px)';
-      setTimeout(()=> { el.style.transition='opacity .45s ease,transform .45s ease'; el.style.opacity='1'; el.style.transform='translateY(0)'; }, 120*i);
-    });
-  }, 2500);
+/* Save token to localStorage and connect websocket */
+function saveAndConnect(tokenObj) {
+  // tokenObj: { token, account, currency }
+  currentToken = tokenObj.token;
+  currentAccount = tokenObj;
+  localStorage.setItem('deriv_token', tokenObj.token);
+  localStorage.setItem('deriv_account', JSON.stringify(tokenObj));
+  connectWebsocketAndAuthorize(tokenObj.token);
+}
 
-  // --- Primary nav behaviour (smooth scroll) ---
-  document.querySelectorAll('.primary-nav .menu-btn').forEach(btn=>{
+/* Logout */
+function doLogout() {
+  localStorage.removeItem('deriv_token');
+  localStorage.removeItem('deriv_account');
+  currentToken = null;
+  currentAccount = null;
+  if (ws) ws.close();
+  updateUIForLoggedOut();
+}
+
+/* UI helpers */
+function showWelcome(name){
+  welcomeText.textContent = `Welcome back, ${name} 💵`;
+  welcomeEl.classList.remove('hidden');
+  welcomeText.style.opacity = 0;
+  welcomeText.style.transform = 'translateY(-8px)';
+  // animate
+  setTimeout(()=> {
+    welcomeText.style.transition = 'all 450ms cubic-bezier(.2,.9,.3,1)';
+    welcomeText.style.opacity = 1;
+    welcomeText.style.transform = 'translateY(0)';
+  },50);
+  // hide after 3s
+  setTimeout(()=> welcomeEl.classList.add('hidden'), 3600);
+}
+
+function updateUIForLoggedIn(info){
+  document.querySelectorAll('[data-requires-login="true"]').forEach(el=>{
+    el.classList.remove('locked');
+  });
+  accountSummary.textContent = `${info.loginid || 'Account'} · ${info.currency || ''}`;
+  acctType.textContent = info.landing_company_name || 'Live';
+  acctBalance.textContent = formatMoney(info.balance, info.currency || 'USD');
+  signinBtn.classList.add('hidden');
+  logoutBtn.classList.remove('hidden');
+  document.getElementById('account-display').classList.remove('locked');
+  showWelcome(info.display_name || (info.loginid || 'Trader'));
+}
+
+function updateUIForLoggedOut(){
+  document.querySelectorAll('[data-requires-login="true"]').forEach(el=>{
+    el.classList.add('locked');
+  });
+  accountSummary.textContent = `Not signed in`;
+  acctType.textContent = 'Demo';
+  acctBalance.textContent = '$0.00';
+  signinBtn.classList.remove('hidden');
+  logoutBtn.classList.add('hidden');
+}
+
+/* Format money */
+function formatMoney(amount, currency){
+  try{
+    const n = Number(amount);
+    return (isNaN(n) ? amount : n.toLocaleString(undefined, { style:'currency', currency: currency.toUpperCase() || 'USD' }));
+  }catch(e){ return `${amount} ${currency}`; }
+}
+
+/* Connect websocket and authenticate with token, then request balance and account status.
+   Uses Deriv WebSocket endpoint (docs show wss://ws.derivws.com/websockets/v3?app_id=APP_ID).
+   After authorize, responses include authorization details and we request balance and account_status.
+*/
+function connectWebsocketAndAuthorize(token) {
+  if (!token) return;
+  try {
+    const url = `wss://ws.derivws.com/websockets/v3?app_id=${APP_ID}`;
+    ws = new WebSocket(url);
+
+    ws.onopen = () => {
+      // authorize
+      ws.send(JSON.stringify({ authorize: token }));
+    };
+
+    ws.onmessage = (msg) => {
+      let data;
+      try { data = JSON.parse(msg.data); } catch(e){ return; }
+
+      // authorize response -> contains account information
+      if (data.authorize) {
+        // authorize response often contains account_list or loginid
+        const auth = data.authorize;
+        // request balance subscribe for the authorized account
+        ws.send(JSON.stringify({ balance: 1, subscribe: 1 }));
+        ws.send(JSON.stringify({ get_account_status: 1 }));
+      }
+
+      // balance updates
+      if (data.msg_type === 'balance' || data.balance) {
+        const balData = data.balance || data;
+        // display balance (may contain account_type, currency)
+        const acctInfo = JSON.parse(localStorage.getItem('deriv_account') || '{}') || {};
+        acctInfo.balance = balData.balance;
+        acctInfo.currency = balData.currency || acctInfo.currency || 'USD';
+        localStorage.setItem('deriv_account', JSON.stringify(acctInfo));
+        updateUIForLoggedIn(acctInfo);
+      }
+
+      // account status response
+      if (data.msg_type === 'get_account_status' || data.get_account_status) {
+        const status = data.get_account_status || data;
+        // status contains loginid and other info
+        const acctInfo = JSON.parse(localStorage.getItem('deriv_account') || '{}') || {};
+        acctInfo.loginid = status.echo_req && status.echo_req.loginid ? status.echo_req.loginid : (status.loginid || acctInfo.loginid);
+        // sometimes response struct differs—merge safely
+        if (!acctInfo.display_name && status.account_name) acctInfo.display_name = status.account_name;
+        if (!acctInfo.landing_company_name && status.landing_company) acctInfo.landing_company_name = status.landing_company.name || acctInfo.landing_company_name;
+        localStorage.setItem('deriv_account', JSON.stringify(acctInfo));
+        updateUIForLoggedIn(acctInfo);
+      }
+
+      // fallback: if message contains authorize result and account list, pick first
+      if (data.msg_type === 'authorize') {
+        if (data.authorize && data.authorize.account_list && data.authorize.account_list.length) {
+          const first = data.authorize.account_list[0];
+          const acctObj = {
+            loginid: first.loginid,
+            balance: first.balance,
+            currency: first.currency,
+            display_name: first.display_name || first.loginid
+          };
+          localStorage.setItem('deriv_account', JSON.stringify(acctObj));
+          updateUIForLoggedIn(acctObj);
+        }
+      }
+
+    };
+
+    ws.onerror = (e) => {
+      console.warn('WebSocket error', e);
+    };
+
+    ws.onclose = () => {
+      // closed
+    };
+  } catch (e) {
+    console.error('WS connect error', e);
+  }
+}
+
+/* On page load: check for tokens in URL (OAuth return), then for saved token in localStorage */
+window.addEventListener('load', () => {
+  // wire UI
+  signinBtn.addEventListener('click', startLogin);
+  overlaySignin.addEventListener('click', startLogin);
+  logoutBtn.addEventListener('click', doLogout);
+
+  document.getElementById('open-upload-modal').addEventListener('click', ()=> {
+    document.getElementById('upload-modal').classList.remove('hidden');
+  });
+  document.getElementById('modal-close').addEventListener('click', ()=> document.getElementById('upload-modal').classList.add('hidden'));
+  document.getElementById('modal-upload').addEventListener('click', ()=>{
+    const f = document.getElementById('local-file').files[0];
+    if (!f) { alert('Please pick an XML bot file'); return; }
+    alert('Uploaded: ' + f.name + ' (demo behavior — implement storage as needed)');
+    document.getElementById('upload-modal').classList.add('hidden');
+  });
+
+  // nav behaviour
+  document.querySelectorAll('.nav-btn').forEach(btn=>{
     btn.addEventListener('click', ()=>{
-      const t = btn.dataset.target;
-      const el = document.getElementById(t);
-      if(el) window.scrollTo({ top: el.offsetTop - 80, behavior: 'smooth' });
-      document.querySelectorAll('.primary-nav .menu-btn').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
       btn.classList.add('active');
+      const page = btn.dataset.page;
+      document.querySelectorAll('.panel').forEach(p=>p.classList.add('hidden'));
+      const el = document.getElementById(page);
+      if (el) el.classList.remove('hidden');
     });
   });
 
-  // floating nav pills smooth scroll
-  document.querySelectorAll('.nav-pill').forEach(p=>{
-    p.addEventListener('click', e=>{
-      e.preventDefault();
-      const href = p.getAttribute('href');
-      const tgt = document.querySelector(href);
-      if(tgt) window.scrollTo({ top: tgt.offsetTop - 80, behavior:'smooth' });
+  // run bot buttons (demo — open Deriv in new tab)
+  document.querySelectorAll('.run-btn').forEach(b=>{
+    b.addEventListener('click', (ev)=>{
+      // If not logged in, prompt sign-in overlay
+      const token = localStorage.getItem('deriv_token');
+      if (!token) {
+        document.getElementById('locked-overlay').classList.remove('hidden');
+        return;
+      }
+      const name = ev.target.dataset.run || 'bot';
+      // Example: open Deriv in a new tab. Real automatic loading in botbuilder requires Deriv integrations.
+      window.open('https://app.deriv.com/bot-builder', '_blank', 'noopener');
     });
   });
 
-  // --- Tiles behaviour ---
-  document.querySelectorAll('.tile').forEach(tile=>{
-    tile.addEventListener('click', ()=> {
-      const a = tile.dataset.action;
-      if(a === 'builder') {
-        const el = document.getElementById('bot-section'); if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
-      } else if(a === 'gdrive') {
-        alert('Google Drive sync placeholder (coming soon).');
-      } else if(a === 'local') {
-        openUploadModal();
-      } else if(a === 'quick') {
-        alert('Quick strategies will open here (coming soon).');
+  // clicking on locked tiles triggers overlay
+  document.querySelectorAll('.tile').forEach(t=>{
+    t.addEventListener('click', ()=>{
+      const requires = t.dataset.requiresLogin === "true";
+      if (requires && !localStorage.getItem('deriv_token')) {
+        document.getElementById('locked-overlay').classList.remove('hidden');
+      } else {
+        // open the tile (basic behaviour)
+        alert('Opening: ' + (t.id || 'tile'));
       }
     });
   });
 
-  // --- Upload modal wiring ---
-  const modal = document.getElementById('upload-modal');
-  const modalClose = document.getElementById('modal-close');
-  const fileInput = document.getElementById('local-file');
-  const fileName = document.getElementById('file-name');
-  const modalHostRun = document.getElementById('modal-host-run');
-  const modalOpenDeriv = document.getElementById('modal-open-deriv');
-
-  function openUploadModal(){
-    modal.setAttribute('aria-hidden', 'false');
-  }
-  function closeUploadModal(){
-    modal.setAttribute('aria-hidden', 'true');
-    fileInput.value = '';
-    fileName.textContent = 'No file chosen';
-  }
-
-  modalClose.addEventListener('click', closeUploadModal);
-  // close modal on outside click
-  modal.addEventListener('click', (e) => {
-    if(e.target === modal) closeUploadModal();
+  // close overlay when clicking outside
+  document.getElementById('locked-overlay').addEventListener('click', (e)=>{
+    if (e.target === e.currentTarget) document.getElementById('locked-overlay').classList.add('hidden');
   });
 
-  fileInput.addEventListener('change', (e) => {
-    const f = e.target.files[0];
-    if(!f) { fileName.textContent = 'No file chosen'; return; }
-    fileName.textContent = `${f.name} — ${Math.round(f.size/1024)} KB`;
-    // keep file in memory for potential later upload (not sent automatically)
-    modal.dataset.selectedFile = f.name;
-    // store file object reference if needed later:
-    (window._bk_local_file = window._bk_local_file || {});
-    window._bk_local_file.current = f;
+  // overlay sign in
+  document.getElementById('overlay-signin').addEventListener('click', ()=> {
+    document.getElementById('locked-overlay').classList.add('hidden');
+    startLogin();
   });
 
-  // When user clicks "Host & Run" — we attempt to open with hosted path.
-  // NOTE: to auto-load, the file MUST be hosted publicly at /bots/<filename>
-  modalHostRun.addEventListener('click', () => {
-    const fname = modal.dataset.selectedFile;
-    if(!fname){
-      alert('Please choose a .xml file first (file must be hosted publicly in /bots/ to auto-load).');
-      return;
-    }
-    // build hosted path assumption
-    const base = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '/');
-    const hosted = base + 'bots/' + encodeURIComponent(fname);
-    // open deriv with load_url=hosted
-    const url = 'https://app.deriv.com/bot#load_url=' + encodeURIComponent(hosted);
-    window.open(url, '_blank');
-    closeUploadModal();
-  });
-
-  // Open Deriv directly: user must upload manually there.
-  modalOpenDeriv.addEventListener('click', () => {
-    // open Deriv Bot Builder and show a short instruction overlay (user must upload file)
-    window.open('https://app.deriv.com/bot', '_blank');
-    alert('Deriv Bot Builder opened in new tab. Please use the builder’s Load / Import option to upload your local .xml file.');
-    closeUploadModal();
-  });
-
-  // --- Run in Bot Builder for free bots (hosted) ---
-  function derivBotBuilderUrl(botUrl){
-    return 'https://app.deriv.com/bot#load_url=' + encodeURIComponent(botUrl);
+  // 1) If redirected from OAuth (tokens in query), parse and save
+  const returned = parseDerivReturn();
+  if (returned && returned.length) {
+    // choose first returned token
+    const first = returned[0];
+    saveAndConnect(first);
+    // cleanup URL (remove query params)
+    history.replaceState(null, '', REDIRECT_URI);
+    return;
   }
 
-  document.querySelectorAll('.run-bot').forEach(btn=>{
-    btn.addEventListener('click', ()=> {
-      const file = btn.dataset.file; // e.g. "Digit Over 3.xml"
-      const base = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '/');
-      const botPath = base + 'bots/' + encodeURIComponent(file);
-      const url = derivBotBuilderUrl(botPath);
-      window.open(url, '_blank');
-    });
-  });
-
-  // --- Run / Stop global bot button (UI only) ---
-  const runBtn = document.getElementById('run-bot');
-  const botIndicator = document.getElementById('bot-indicator');
-  const botState = document.getElementById('bot-state');
-  let botRunning = false;
-  runBtn && runBtn.addEventListener('click', ()=> {
-    botRunning = !botRunning;
-    if(botRunning){
-      runBtn.classList.add('running');
-      runBtn.querySelector('.run-icon i').classList.remove('fa-play'); runBtn.querySelector('.run-icon i').classList.add('fa-pause');
-      botIndicator.classList.remove('stopped'); botIndicator.classList.add('running');
-      botState.textContent = 'Bot is running';
-    } else {
-      runBtn.classList.remove('running');
-      runBtn.querySelector('.run-icon i').classList.remove('fa-pause'); runBtn.querySelector('.run-icon i').classList.add('fa-play');
-      botIndicator.classList.remove('running'); botIndicator.classList.add('stopped');
-      botState.textContent = 'Bot is stopped';
-    }
-  });
-
-  // --- Chat panel (auto-open first visit) ---
-  const chatPanel = document.getElementById('chat-panel');
-  const chatCloseBtn = document.getElementById('chat-close');
-  const CHAT_KEY = 'bk_chat_closed_v1';
-  if(localStorage.getItem(CHAT_KEY) === 'closed') {
-    chatPanel.classList.remove('open');
-    chatPanel.classList.add('closed');
-    chatPanel.setAttribute('aria-hidden','true');
+  // 2) If token in localStorage, auto-connect
+  const savedToken = localStorage.getItem('deriv_token');
+  const savedAccount = JSON.parse(localStorage.getItem('deriv_account') || 'null');
+  if (savedToken) {
+    // set current and connect
+    currentToken = savedToken;
+    currentAccount = savedAccount || null;
+    connectWebsocketAndAuthorize(savedToken);
+    if (savedAccount) updateUIForLoggedIn(savedAccount);
   } else {
-    chatPanel.classList.add('open');
-    chatPanel.classList.remove('closed');
-    chatPanel.setAttribute('aria-hidden','false');
+    updateUIForLoggedOut();
   }
-  chatCloseBtn.addEventListener('click', ()=> {
-    chatPanel.classList.add('closed');
-    chatPanel.classList.remove('open');
-    chatPanel.setAttribute('aria-hidden','true');
-    localStorage.setItem(CHAT_KEY, 'closed');
-  });
-  // chat tabs
-  document.querySelectorAll('.chat-tab').forEach(t => {
-    t.addEventListener('click', ()=> {
-      document.querySelectorAll('.chat-tab').forEach(tb=>tb.classList.remove('active'));
-      t.classList.add('active');
-      const sel = t.dataset.tab;
-      document.getElementById('telegram-panel').style.display = (sel==='telegram') ? 'block' : 'none';
-      document.getElementById('whatsapp-panel').style.display = (sel==='whatsapp') ? 'block' : 'none';
-    });
-  });
 
-  // --- Mobile hamburger ---
-  const hamburger = document.querySelector('.hamburger');
-  const primaryNav = document.querySelector('.primary-nav');
-  hamburger && hamburger.addEventListener('click', ()=>{
-    const visible = getComputedStyle(primaryNav).display !== 'none';
-    primaryNav.style.display = visible ? 'none' : 'flex';
-    hamburger.setAttribute('aria-expanded', (!visible).toString());
-  });
-
-  // --- create missing anchors to keep menu safe ---
-  ['dashboard','bot-section','chart-section','analysis-section','freebot-section','tutorial-section'].forEach(id=>{
-    if(!document.getElementById(id)){
-      const s = document.createElement('section'); s.id = id; s.style.display='none'; document.body.appendChild(s);
-    }
-  });
-
-}); // DOMContentLoaded
+});
