@@ -1,14 +1,165 @@
-<!DOCTYPE html>
-<html lang='en'>
+<!doctype html>
+<html lang="en">
 <head>
-<meta charset='UTF-8'>
-<meta name='viewport' content='width=device-width, initial-scale=1.0'>
-<title>BK Dollar Animation</title>
-<link rel='stylesheet' href='style.css'>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>BK Dollar Animation — Trading Hub</title>
+<link rel="stylesheet" href="style.css" />
 </head>
 <body>
-<h1>BK Dollar Animation - Day 3 Build</h1>
-<p style='color:gray;'>✅ If you see this text, the site is loading correctly.</p>
-<script src='script.js'></script>
+<!-- Loading screen -->
+<div id="loader" class="loader">
+  <div class="loader-inner">
+    <h1 class="brand">BK Dollar Animation</h1>
+    <div class="tag">bkdollaranimation</div>
+    <div class="connecting">Connecting to Deriv…</div>
+  </div>
+</div>
+
+<header class="topbar">
+  <div class="brand-left">
+    <div class="brand-name">BK Dollar Animation</div>
+    <div class="brand-sub">bkdollaranimation</div>
+  </div>
+
+  <nav class="nav">
+    <button class="nav-btn active" data-page="dashboard">Dashboard</button>
+    <button class="nav-btn" data-page="botbuilder">Bot Builder</button>
+    <button class="nav-btn" data-page="chart">Chart</button>
+    <button class="nav-btn" data-page="analysis">Analysis Tool</button>
+    <button class="nav-btn" data-page="freebot">Free Bot</button>
+    <button class="nav-btn" data-page="tutorial">Tutorial</button>
+  </nav>
+
+  <div class="auth-area">
+    <div id="account-info" class="account-info">Not signed in</div>
+    <button id="signin-btn" class="deriv-btn">Sign in with Deriv</button>
+    <button id="logout-btn" class="deriv-btn ghost hidden">Logout</button>
+  </div>
+</header>
+
+<main class="container">
+  <section id="dashboard" class="panel">
+    <div class="center-workspace">
+      <div class="workspace-top">
+        <div class="status"><span id="bot-status">Bot is not running</span></div>
+        <div class="run-area">
+          <button id="run-btn" class="run-btn">Run</button>
+          <button id="stop-btn" class="run-btn stop hidden">Stop</button>
+        </div>
+      </div>
+
+      <div id="workspace" class="workspace white-box">
+        <h2>Welcome to BK Trading Hub</h2>
+        <p class="muted">Load a bot from Free Bot or open Bot Builder to start.</p>
+      </div>
+
+      <div class="tiles-row">
+        <div class="tile">Local<br><small>Upload & manage local bots</small></div>
+        <div class="tile">Google Drive<br><small>Sync strategies</small></div>
+        <div class="tile">Bot Builder<br><small>Open official Bot Builder</small></div>
+        <div class="tile">Quick Strategy<br><small>One-click strategies</small></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="botbuilder" class="panel hidden">
+    <h2>Bot Builder</h2>
+    <p>Drag & drop area (placeholder). Use Free Bot to preload a bot.</p>
+    <div class="builder-area">
+      <button id="open-upload-modal" class="small">Upload local bot</button>
+      <div id="builder-preview" class="builder-preview">No bot loaded</div>
+    </div>
+  </section>
+
+  <section id="chart" class="panel hidden">
+    <h2>Chart</h2>
+    <p class="muted">Live Deriv chart embed (opens in new tab if blocked).</p>
+    <div class="chart-area">
+      <iframe id="dtrader-iframe" src="https://app.deriv.com" frameborder="0"></iframe>
+    </div>
+  </section>
+
+  <section id="analysis" class="panel hidden">
+    <h2>Analysis Tool</h2>
+    <p>Coming soon — charts, backtests, indicators.</p>
+  </section>
+
+  <section id="freebot" class="panel hidden">
+    <h2>Free Bots</h2>
+    <div class="bot-grid">
+
+      <div class="bot-card">
+        <div class="bot-icon">🤖</div>
+        <div class="bot-info">
+          <div class="bot-name">Digit Over 3</div>
+          <div class="bot-desc">Trades digits over 3</div>
+        </div>
+        <div class="bot-actions">
+          <button class="run-bot-btn" data-file="digit_over_3.xml">Run in Bot Builder</button>
+          <button class="run-hybrid-btn" data-file="digit_over_3.xml">Run with Chart</button>
+        </div>
+      </div>
+    
+      <div class="bot-card">
+        <div class="bot-icon">🤖</div>
+        <div class="bot-info">
+          <div class="bot-name">Leo Even Odd</div>
+          <div class="bot-desc">Even / Odd digit strategy</div>
+        </div>
+        <div class="bot-actions">
+          <button class="run-bot-btn" data-file="leo_even_odd.xml">Run in Bot Builder</button>
+          <button class="run-hybrid-btn" data-file="leo_even_odd.xml">Run with Chart</button>
+        </div>
+      </div>
+    
+      <div class="bot-card">
+        <div class="bot-icon">🤖</div>
+        <div class="bot-info">
+          <div class="bot-name">RF Market-Monitor</div>
+          <div class="bot-desc">Market monitor strategy</div>
+        </div>
+        <div class="bot-actions">
+          <button class="run-bot-btn" data-file="rf_market_monitor.xml">Run in Bot Builder</button>
+          <button class="run-hybrid-btn" data-file="rf_market_monitor.xml">Run with Chart</button>
+        </div>
+      </div>
+    
+      <div class="bot-card coming-soon">
+        <div class="bot-icon">✨</div>
+        <div class="bot-info">
+          <div class="bot-name">More Free Bots Coming Soon</div>
+          <div class="bot-desc">Join Telegram for updates</div>
+        </div>
+        <div class="bot-actions">
+          <a class="small" href="https://t.me/+BsA8dvAh_lA2YzRk" target="_blank">Get Updates</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tutorial" class="panel hidden">
+    <h2>Tutorial</h2>
+    <p>Video tutorials and onboarding will appear here.</p>
+  </section>
+</main>
+
+<!-- Upload modal -->
+<div id="upload-modal" class="modal hidden">
+  <div class="modal-inner">
+    <h3>Upload local bot</h3>
+    <input id="local-file" type="file" accept=".xml" />
+    <div class="modal-actions">
+      <button id="modal-close" class="small">Cancel</button>
+      <button id="modal-upload" class="small primary">Upload</button>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <small>© BK Dollar Animation</small>
+</footer>
+
+<script src="script.js"></script>
 </body>
 </html>
