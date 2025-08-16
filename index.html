@@ -1,807 +1,527 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>DBrain Trader</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Deriv Pro Suite — Dashboard</title>
+<link rel="preconnect" href="https://static.deriv.com">
+<link rel="preconnect" href="https://app.deriv.com">
 <style>
   :root{
-    --brand-red:#ff444f;
-    --dark:#111111;
-    --ink:#0f172a;
-    --text:#0b1220;
+    --brand-red:#e31237;
+    --brand-dark:#111;
+    --brand-black:#000;
+    --brand-white:#fff;
+    --ok:#11a36a;
+    --bad:#e53935;
     --muted:#6b7280;
-    --ok:#16a34a;
-    --bad:#ef4444;
-    --card:#ffffff;
-    --bar:#000000; /* sessions line */
+    --bar:#0a0a0a;
   }
-  html,body{margin:0;padding:0;background:#fff;color:var(--text);font:500 14px/1.35 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter,"Helvetica Neue",Arial}
-  a{text-decoration:none;color:inherit}
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:#ffffff;color:#111;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial,sans-serif}
+  a{color:inherit;text-decoration:none}
   .wrap{max-width:1200px;margin:0 auto;padding:0 12px}
-
-  /* Top bar */
-  .topbar{border-bottom:1px solid #eee;background:#fff;position:sticky;top:0;z-index:50}
+  /* TOP HEADER */
+  .topbar{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid #eee}
   .toprow{display:flex;align-items:center;gap:12px;justify-content:space-between;padding:10px 0}
   .brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.3px}
-  .brand .dotmenu{margin-left:8px;cursor:pointer}
+  .brand .dotmenu{margin-left:6px}
+  .brand .logo-dot{width:10px;height:10px;border-radius:50%;background:var(--brand-red);display:inline-block}
   .auth{display:flex;align-items:center;gap:10px}
-  .auth .btn{padding:6px 10px;border-radius:10px;border:1px solid #e5e7eb}
-  .auth .btn.primary{background:var(--brand-red);color:#fff;border-color:var(--brand-red)}
-  /* balance (hidden before login) */
-  .balanceWrap{display:none;align-items:center;gap:8px}
-  .balDropdown{appearance:none;border:1px solid #e5e7eb;padding:4px 8px;border-radius:8px;background:#fff}
-  .balValue{font-weight:800;color:var(--ok)}
-  .pill{display:inline-flex;align-items:center;gap:6px;background:#f8fafc;border:1px solid #e5e7eb;border-radius:999px;padding:4px 8px}
-
-  /* Running words marquee */
-  .marquee{background:#fff;border-bottom:1px solid #eee}
-  .marquee .line{white-space:nowrap;overflow:hidden}
-  .marquee span{display:inline-block;padding:6px 0;animation:scroll 35s linear infinite}
-  @keyframes scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-
-  /* Sessions strip (one black line) */
-  .tabs{background:var(--bar);color:#fff;position:sticky;top:56px;z-index:40;border-bottom:2px solid var(--brand-red)}
-  .tabs .wrap{display:flex;gap:10px;overflow:auto;white-space:nowrap}
-  .tab{padding:10px 12px;border-radius:10px}
-  .tab.active{background:#1e293b}
-  .tab:hover{background:#111827}
-
-  /* Sections */
-  section{display:none;padding:18px 0}
+  .pill{display:inline-flex;align-items:center;gap:8px;border:1px solid #eee;border-radius:999px;padding:6px 10px; background:#fafafa}
+  .btn{display:inline-flex;align-items:center;justify-content:center;border-radius:10px;padding:8px 12px;border:1px solid #e5e7eb;background:#fff;font-weight:600;cursor:pointer}
+  .btn.red{background:var(--brand-red);border-color:var(--brand-red);color:#fff}
+  .btn.black{background:#111;color:#fff;border-color:#111}
+  .btn.ghost{background:#fff;border-color:#ddd}
+  .btn.small{padding:6px 10px;font-size:.9rem}
+  .badge{display:inline-flex;align-items:center;gap:6px;font-weight:700}
+  .balance{display:flex;align-items:center;gap:8px}
+  .balance .chip{display:inline-flex;align-items:center;gap:6px;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:999px;padding:4px 8px}
+  .balance .chip.hidden{display:none}
+  .balance .amt{font-weight:800;color:#0c7c3a}
+  .icon{width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;border-radius:3px;font-size:.7rem;font-weight:800}
+  .icon.D{background:#0ea5e9;color:#fff}
+  .icon.R{background:#111;color:#fff}
+  .menu{position:relative}
+  .menu .menu-btn{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;border:1px solid #e5e7eb;background:#fff;cursor:pointer}
+  .menu-drop{position:absolute;right:0;top:110%;background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.08);min-width:220px;display:none;overflow:hidden}
+  .menu-drop a,.menu-drop button{display:flex;width:100%;padding:10px 12px;border:0;background:#fff;cursor:pointer;align-items:center;gap:8px}
+  .menu-drop a:hover,.menu-drop button:hover{background:#f9fafb}
+  .menu.open .menu-drop{display:block}
+  .links{display:flex;align-items:center;gap:8px}
+  .links .circle{width:36px;height:36px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #eee}
+  .ticker{background:#fff;border-top:1px solid #eee;border-bottom:1px solid #eee}
+  .ticker-inner{overflow:hidden;white-space:nowrap;padding:8px 0;color:#111;font-weight:600}
+  .ticker-inner .track{display:inline-block; animation:move 20s linear infinite}
+  @keyframes move{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  /* NAV */
+  .nav{background:var(--brand-black);color:#fff;border-bottom:2px solid #000;position:sticky;top:64px;z-index:40}
+  .nav .row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:6px 0}
+  .nav .tab{color:#fff;border:1px solid #222;background:#0b0b0b;padding:8px 10px;border-radius:10px;font-weight:700;cursor:pointer}
+  .nav .tab.active{background:var(--brand-red);border-color:var(--brand-red)}
+  /* SECTIONS */
+  section{display:none;padding:18px 0 40px}
   section.active{display:block}
-
-  /* Dashboard cards */
-  .grid{display:grid;gap:12px}
-  @media(min-width:640px){.grid{grid-template-columns:repeat(2,1fr)}}
-  @media(min-width:960px){.grid{grid-template-columns:repeat(4,1fr)}}
-  .card{background:var(--card);border:1px solid #e5e7eb;border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:8px}
-  .card h4{margin:4px 0 6px 0;font-size:14px}
-  .card .imgFake{height:120px;border-radius:12px;background:#f3f4f6;display:grid;place-items:center;color:#64748b;border:1px dashed #cbd5e1}
-
-  /* Free bots list */
-  .botsList{display:grid;gap:10px}
-  @media(min-width:720px){.botsList{grid-template-columns:repeat(3,1fr)}}
-  .botItem{border:1px solid #e5e7eb;border-radius:14px;padding:12px;background:#fff}
-  .botItem h5{margin:0 0 6px 0}
-  .botItem button{width:100%;padding:8px;border:0;border-radius:10px;background:var(--brand-red);color:#fff}
-
-  /* Strategy panel */
-  .strategyTop{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
-  .strategyTop select,.strategyTop input,.strategyTop button{border:1px solid #e5e7eb;border-radius:10px;padding:8px 10px;background:#fff}
+  .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .card{border:1px solid #eee;border-radius:14px;overflow:hidden;background:#fff}
+  .card .img{height:120px;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-weight:800;color:#9ca3af}
+  .card .body{padding:12px}
+  .note{padding:10px 12px;border:1px dashed #ddd;border-radius:12px;background:#fcfcfd;color:#374151}
+  /* STRATEGY PANEL */
   .digits{display:grid;grid-template-columns:repeat(10,1fr);gap:6px;margin-top:10px}
-  .digitCell{border:1px solid #e5e7eb;border-radius:10px;padding:8px;text-align:center}
-  .digitCell .d{font-weight:800}
-  .digitCell .p{font-size:12px}
-  .digitCell.win{background:#ecfdf5;border-color:#86efac}
-  .digitCell.lose{background:#fef2f2;border-color:#fecaca}
-  .legend{display:flex;gap:8px;align-items:center;color:#64748b;font-size:12px}
-  .legend .dot{width:10px;height:10px;border-radius:50%}
-  .dot.green{background:var(--ok)}
-  .dot.red{background:var(--bad)}
-  .lastTicks{margin-top:12px;border:1px solid #e5e7eb;border-radius:12px;padding:10px;background:#fff;max-height:160px;overflow:auto}
-  .lastTicks code{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,"Liberation Mono","Courier New",monospace}
-
-  /* Slide-up Run Bar */
-  .runbar{position:fixed;bottom:0;left:0;right:0;background:#0b1220;color:#fff;border-top:4px solid var(--brand-red);transform:translateY(calc(100% - 44px));transition:transform .35s ease;z-index:60}
-  .runbar.open{transform:translateY(0)}
-  .runHandle{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;cursor:pointer}
-  .runHandle .btn{background:var(--brand-red);border:0;border-radius:10px;padding:8px 12px;color:#fff}
-  .runBody{padding:12px;border-top:1px solid #1f2937;display:grid;gap:10px}
+  .digit{border:1px solid #e5e7eb;border-radius:10px;padding:10px;background:#fff;position:relative}
+  .digit .n{font-weight:900;font-size:18px}
+  .digit .pct{font-size:.8rem;color:#6b7280}
+  .digit.least{outline:2px solid var(--bad)}
+  .digit.most{outline:2px solid var(--ok)}
+  .marker{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+  .marker .dot{width:16px;height:16px;border-radius:999px;box-shadow:0 0 0 4px rgba(16,185,129,.25);background:#10b981;opacity:.0;transform:scale(.7);transition:all .15s linear}
+  .digit.hit .marker .dot{opacity:1;transform:scale(1)}
+  .digit.miss{animation:missflash .4s}
+  @keyframes missflash{from{box-shadow:0 0 0 0 rgba(229,57,53,.6)}to{box-shadow:0 0 0 10px rgba(229,57,53,0)}}
+  .trail{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+  .trail .t{width:18px;height:18px;border-radius:4px;background:#eee;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:800;color:#333}
+  .trail .t.current{background:#10b981;color:#fff}
+  .trail .t.prev{opacity:.7}
+  .flex{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .select, select, input[type=number]{border:1px solid #e5e7eb;border-radius:10px;padding:8px 10px;font-weight:600;background:#fff}
+  .switch{border:1px solid #e5e7eb;border-radius:999px;padding:4px;display:inline-flex;gap:4px}
+  .switch .s{padding:6px 10px;border-radius:999px;cursor:pointer}
+  .switch .s.active{background:#111;color:#fff}
+  /* RUN BOT TRAY */
+  .runbar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #eee;z-index:60}
+  .runbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0}
+  .runbtn{display:flex;align-items:center;gap:10px;background:var(--brand-red);color:#fff;border:0;border-radius:12px;padding:10px 14px;font-weight:900;cursor:pointer}
+  .tray{position:fixed;left:0;right:0;bottom:-320px;background:#fff;border-top:2px solid #111;box-shadow:0 -20px 40px rgba(0,0,0,.12);transition:bottom .25s ease;z-index:55}
+  .tray.open{bottom:56px}
   .stats{display:flex;gap:10px;flex-wrap:wrap}
-  .stat{background:#111827;border-radius:10px;padding:8px 10px}
-  .stat .label{font-size:11px;color:#9ca3af}
-  .stat .val{font-weight:800}
-  .log{background:#0f172a;border-radius:10px;padding:8px;max-height:160px;overflow:auto;font-family:ui-monospace,monospace}
-  .toggles{display:flex;gap:10px;align-items:center}
-  .switch{appearance:none;width:44px;height:24px;border-radius:999px;background:#374151;position:relative;outline:none;cursor:pointer}
-  .switch:checked{background:var(--ok)}
-  .switch:before{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s}
-  .switch:checked:before{left:23px}
-
-  /* 3-dots menu */
-  .menu{position:absolute;top:42px;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:8px;display:none;min-width:180px}
-  .menu a{display:block;padding:8px;border-radius:8px}
-  .menu a:hover{background:#f3f4f6}
-  .rel{position:relative}
-
-  /* helper */
-  .hide{display:none !important}
+  .stat{border:1px solid #eee;border-radius:12px;padding:10px 12px;background:#fafafa}
+  .stat .v{font-weight:900}
+  .pl.plus{color:#10b981}
+  .pl.minus{color:#e53935}
+  /* RESPONSIVE */
+  @media (max-width:900px){
+    .grid-4{grid-template-columns:repeat(2,1fr)}
+    .nav .row{gap:4px}
+    .nav .tab{padding:6px 8px;font-size:.9rem}
+  }
+  @media (max-width:600px){
+    .grid-4{grid-template-columns:1fr}
+    .toprow{flex-wrap:wrap;gap:8px}
+    .balance{order:3;width:100%;justify-content:flex-start}
+    .links{order:2}
+  }
 </style>
 </head>
 <body>
-  <!-- TOP BAR -->
-  <div class="topbar">
+  <header class="topbar">
     <div class="wrap toprow">
       <div class="brand">
-        <span style="font-size:18px">DBrain Trader</span>
-        <!-- balance (hidden before auth) -->
-        <div id="balanceWrap" class="balanceWrap">
-          <span class="pill">
-            <select id="acctSwitch" class="balDropdown" title="Switch account">
-              <!-- options injected after login -->
-            </select>
-            <span id="balIcon" title="Account icon">💠</span>
-          </span>
-          <span id="balValue" class="balValue">—</span>
+        <span class="logo-dot"></span>
+        <div>Deriv Pro Suite</div>
+        <div class="menu" id="kebab">
+          <button class="menu-btn" aria-label="menu" onclick="toggleMenu()">&#8942;</button>
+          <div class="menu-drop" id="menuDrop">
+            <button onclick="openSettings()">Account settings</button>
+            <a id="cashierLink" target="_blank" href="https://app.deriv.com/cashier/deposit">Cashier (Deposit/Withdraw)</a>
+            <button onclick="logout()">Logout</button>
+            <div style="border-top:1px solid #eee"></div>
+            <button onclick="toggleTheme()">Toggle Dark Mode</button>
+          </div>
         </div>
+      </div>
+
+      <div class="links">
+        <a class="circle" title="WhatsApp" target="_blank" href="https://chat.whatsapp.com/I9pHdE0sNuTJbKMzgJ84GD?mode=ac_t">WA</a>
+        <a class="circle" title="Telegram" target="_blank" href="https://t.me/+BsA8dvAh_lA2YzRk">TG</a>
       </div>
 
       <div class="auth">
-        <a class="btn" id="whatsapp" href="https://chat.whatsapp.com/I9pHdE0sNuTJbKMzgJ84GD?mode=ac_t" target="_blank" rel="noopener">WhatsApp</a>
-        <a class="btn" id="telegram" href="https://t.me/+BsA8dvAh_lA2YzRk" target="_blank" rel="noopener">Telegram</a>
-
-        <div class="rel">
-          <button class="btn" id="dotsBtn">⋮</button>
-          <div class="menu" id="dotsMenu">
-            <a href="#" id="settingsBtn">Account settings</a>
-            <a href="https://cashier.deriv.com" target="_blank" rel="noopener">Cashier (Deposit/Withdraw)</a>
-            <a href="#" id="darkModeBtn">Toggle Dark mode</a>
-            <a href="#" id="logoutBtn">Sign out</a>
+        <div class="balance" id="balanceBox" style="display:none">
+          <div class="chip" id="acctChip">
+            <span id="acctIcon" class="icon D">D</span>
+            <select id="acctSwitch" class="select small" title="Account">
+              <option value="demo">Demo</option>
+              <option value="real">Real</option>
+            </select>
+          </div>
+          <div class="chip">
+            <span>Balance:</span>
+            <span class="amt" id="balanceAmt">$0.00</span>
           </div>
         </div>
-
-        <a id="signinBtn" class="btn">Sign in</a>
-        <a id="signupBtn" class="btn primary">Sign up</a>
+        <div id="authBtns">
+          <a class="btn ghost small" id="signinBtn" href="#">Sign in</a>
+          <a class="btn red small" id="signupBtn" target="_blank" href="https://deriv.com/signup/?t=96503">Sign up</a>
+        </div>
       </div>
     </div>
+  </header>
 
-    <!-- RUNNING WORDS -->
-    <div class="marquee">
-      <div class="wrap line">
-        <span>
-          Trade responsibly • Analyze before you run bots • Demo first, then Real • Stay disciplined • Protect capital •
-          Trade responsibly • Analyze before you run bots • Demo first, then Real • Stay disciplined • Protect capital •
-        </span>
-      </div>
-    </div>
-
-    <!-- SESSION TABS -->
-    <div class="tabs">
-      <div class="wrap" id="tabs">
-        <a class="tab active" data-tab="dashboard">Dashboard</a>
-        <a class="tab" data-tab="botbuilder">Botbuilder</a>
-        <a class="tab" data-tab="analysis">Analysis Tool</a>
-        <a class="tab" data-tab="signals">Signal Tool</a>
-        <a class="tab" data-tab="freebots">Free Bots</a>
-        <a class="tab" data-tab="dtrade">DTrade</a>
-        <a class="tab" data-tab="chart">Chart</a>
-        <a class="tab" data-tab="strategies">Strategies</a>
-        <a class="tab" data-tab="tutorial">Tutorial</a>
+  <div class="ticker">
+    <div class="wrap ticker-inner">
+      <div class="track">
+        ⚡ Trade smart — Analyze, build bots, run and track P/L live. &nbsp;&nbsp; • &nbsp;&nbsp;
+        Matches/Differs — Even/Odd — Over/Under — Volatilities 10–100 (1s). &nbsp;&nbsp; • &nbsp;&nbsp;
+        Copy Demo to Real (optional). &nbsp;&nbsp; • &nbsp;&nbsp;
+        Always manage risk. Never overexpose capital.
+        &nbsp;&nbsp; • &nbsp;&nbsp; App ID: 96503
       </div>
     </div>
   </div>
 
-  <!-- CONTENT -->
-  <main class="wrap">
+  <nav class="nav">
+    <div class="wrap row" id="tabsRow">
+      <button class="tab active" data-tab="dashboard">Dashboard</button>
+      <button class="tab" data-tab="botbuilder">BotBuilder</button>
+      <button class="tab" data-tab="analysis">Analysis Tool</button>
+      <button class="tab" data-tab="signals">Signal Tool</button>
+      <button class="tab" data-tab="dtrade">DTrade</button>
+      <button class="tab" data-tab="chart">Chart</button>
+      <button class="tab" data-tab="strategy">Strategy</button>
+      <button class="tab" data-tab="tutorial">Tutorial</button>
+    </div>
+  </nav>
 
+  <main class="wrap">
     <!-- DASHBOARD -->
     <section id="dashboard" class="active">
-      <div class="grid">
-        <div class="card">
-          <div class="imgFake">Upload Local Bot</div>
-          <h4>Upload local XML</h4>
-          <input id="localBot" type="file" accept=".xml" />
+      <div class="grid-4">
+        <div class="card" onclick="openLocalUpload()">
+          <div class="img">LOCAL UPLOAD</div>
+          <div class="body">
+            <div class="note">Upload a .xml binary bot from your device. The dashboard collapses to show it ready to feed & run.</div>
+          </div>
         </div>
-        <div class="card">
-          <div class="imgFake">Google Drive Bot</div>
-          <h4>Load from Drive (URL)</h4>
-          <input id="driveUrl" type="url" placeholder="https://drive.google.com/..." />
-          <button id="loadDrive" class="btn primary" style="width:max-content">Load</button>
+        <div class="card" onclick="openDrive()">
+          <div class="img">GOOGLE DRIVE</div>
+          <div class="body">
+            <div class="note">Import a bot from Google Drive.</div>
+          </div>
         </div>
-        <div class="card">
-          <div class="imgFake">Botbuilder</div>
-          <h4>Open Botbuilder</h4>
-          <button class="btn" onclick="openTab('botbuilder')">Open</button>
+        <div class="card" onclick="navigate('botbuilder')">
+          <div class="img">BOT BUILDER</div>
+          <div class="body">
+            <div class="note">Build or edit bots with Deriv’s panel.</div>
+          </div>
         </div>
-        <div class="card">
-          <div class="imgFake">Quick Strategy</div>
-          <h4>Open Strategies</h4>
-          <button class="btn" onclick="openTab('strategies')">Open</button>
-        </div>
-      </div>
-
-      <div id="botStage" class="card" style="margin-top:12px">
-        <h4>Loaded Bot (ready to be fed & run)</h4>
-        <textarea id="botXml" style="width:100%;height:180px;border:1px solid #e5e7eb;border-radius:10px;padding:8px" placeholder="Your bot XML will appear here..."></textarea>
-        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
-          <input id="stake" type="number" min="0.35" step="0.01" placeholder="Stake" />
-          <input id="duration" type="number" min="1" step="1" placeholder="Duration (ticks)" />
-          <select id="symbolSel">
-            <option value="R_10">Volatility 10 Index</option>
-            <option value="R_10_1HZ">Volatility 10 (1s) Index</option>
-            <option value="R_25">Volatility 25 Index</option>
-            <option value="R_25_1HZ">Volatility 25 (1s) Index</option>
-            <option value="R_30">Volatility 30 Index</option>
-            <option value="R_30_1HZ">Volatility 30 (1s) Index</option>
-            <option value="R_50">Volatility 50 Index</option>
-            <option value="R_50_1HZ">Volatility 50 (1s) Index</option>
-            <option value="R_75">Volatility 75 Index</option>
-            <option value="R_75_1HZ">Volatility 75 (1s) Index</option>
-            <option value="R_100">Volatility 100 Index</option>
-            <option value="R_100_1HZ">Volatility 100 (1s) Index</option>
-          </select>
+        <div class="card" onclick="quickStrategy()">
+          <div class="img">QUICK STRATEGY</div>
+          <div class="body">
+            <div class="note">Start with popular presets. You can still tweak before running.</div>
+          </div>
         </div>
       </div>
+      <div id="uploadHost" style="margin-top:16px"></div>
     </section>
 
-    <!-- BOTBUILDER (default bot appears here ready to edit) -->
+    <!-- BOTBUILDER -->
     <section id="botbuilder">
-      <div class="card">
-        <h4>Default Bot (editable)</h4>
-        <textarea id="defaultBot" style="width:100%;height:240px;border:1px solid #e5e7eb;border-radius:10px;padding:8px">&lt;!-- Your default bot XML here (editable) --&gt;</textarea>
-        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn" onclick="loadDefaultBot()">Load to Dashboard</button>
-          <button class="btn primary" onclick="openTab('strategies')">Open Strategies</button>
-        </div>
+      <div class="note">Attempting to embed Deriv Bot Builder. If you see a blank panel due to browser blocking, use the button below to open it directly.</div>
+      <div style="height:520px;border:1px solid #eee;border-radius:12px;overflow:hidden;margin:12px 0">
+        <iframe src="https://bot.deriv.com/" title="Deriv Bot" style="border:0;width:100%;height:100%"></iframe>
       </div>
+      <a class="btn red" target="_blank" href="https://bot.deriv.com/">Open Bot Builder in new tab</a>
     </section>
 
-    <!-- ANALYSIS PLACEHOLDER -->
+    <!-- PLACEHOLDERS -->
     <section id="analysis">
-      <div class="card"><h4>Analysis Tool</h4><p>Coming next. This will connect to your Google Sheet / in-house models.</p></div>
+      <div class="note">Analysis Tool will be linked here.</div>
     </section>
-
-    <!-- SIGNALS PLACEHOLDER -->
     <section id="signals">
-      <div class="card"><h4>Signal Tool</h4><p>Coming next. Matches/Differs model here.</p></div>
+      <div class="note">Signal Tool will be linked here.</div>
     </section>
 
-    <!-- FREE BOTS (7 bots) -->
-    <section id="freebots">
-      <div class="botsList" id="botsList"></div>
-    </section>
-
-    <!-- DTRADE (note: many official pages block iframe; we show helpful link if blocked) -->
+    <!-- DTRADE -->
     <section id="dtrade">
-      <div class="card">
-        <h4>DTrader</h4>
-        <p>If the live platform blocks embedding, use the button below (opens in new tab) to trade while your session stays here.</p>
-        <a class="btn primary" target="_blank" rel="noopener" href="https://smarttrader.deriv.com">Open DTrader</a>
+      <div class="note">DTrader embed. If blocked, click “Open DTrader”.</div>
+      <div style="height:560px;border:1px solid #eee;border-radius:12px;overflow:hidden;margin:12px 0">
+        <iframe src="https://app.deriv.com/deriv" title="DTrader" style="border:0;width:100%;height:100%"></iframe>
       </div>
+      <a class="btn red" target="_blank" href="https://app.deriv.com/deriv">Open DTrader in new tab</a>
     </section>
 
-    <!-- CHART (lightweight live tick viewer) -->
+    <!-- CHART -->
     <section id="chart">
-      <div class="card">
-        <h4>Live Chart (lightweight)</h4>
-        <div class="strategyTop">
-          <select id="chartSymbol">
-            <option value="R_100">Volatility 100 Index</option>
-            <option value="R_100_1HZ">Volatility 100 (1s) Index</option>
-            <option value="R_75">Volatility 75 Index</option>
-            <option value="R_75_1HZ">Volatility 75 (1s) Index</option>
-          </select>
-          <button id="chartStart">Start</button>
-          <button id="chartStop">Stop</button>
-        </div>
-        <div id="chartLog" class="lastTicks" style="height:220px"></div>
+      <div class="note">SmartTrader/Chart embed. If blocked, click “Open Chart”.</div>
+      <div style="height:560px;border:1px solid #eee;border-radius:12px;overflow:hidden;margin:12px 0">
+        <iframe src="https://app.deriv.com/tnc" title="Chart" style="border:0;width:100%;height:100%"></iframe>
       </div>
+      <a class="btn red" target="_blank" href="https://app.deriv.com/tnc">Open Chart in new tab</a>
     </section>
 
-    <!-- STRATEGIES (live last-digit analyzer, matches/differs/odd/even/over-under) -->
-    <section id="strategies">
-      <div class="card">
-        <h4>Quick Strategy — Live Last-Digit Monitor</h4>
-        <div class="strategyTop">
-          <select id="strSymbol">
-            <option value="R_10">Volatility 10</option>
-            <option value="R_10_1HZ">Volatility 10 (1s)</option>
-            <option value="R_25">Volatility 25</option>
-            <option value="R_25_1HZ">Volatility 25 (1s)</option>
-            <option value="R_30">Volatility 30</option>
-            <option value="R_30_1HZ">Volatility 30 (1s)</option>
-            <option value="R_50">Volatility 50</option>
-            <option value="R_50_1HZ">Volatility 50 (1s)</option>
-            <option value="R_75">Volatility 75</option>
-            <option value="R_75_1HZ">Volatility 75 (1s)</option>
-            <option value="R_100">Volatility 100</option>
-            <option value="R_100_1HZ">Volatility 100 (1s)</option>
-          </select>
-          <select id="strMode" title="Contract type">
-            <option value="match">Matches</option>
-            <option value="differs">Differs</option>
-            <option value="odd">Odd</option>
-            <option value="even">Even</option>
-            <option value="over">Over</option>
-            <option value="under">Under</option>
-          </select>
-          <input id="strPredict" type="number" min="0" max="9" step="1" placeholder="Predict digit (0-9)" style="width:150px" />
-          <input id="strTicks" type="number" min="1" step="1" value="25" style="width:120px" />
-          <button id="strStart">Start</button>
-          <button id="strStop">Stop</button>
+    <!-- STRATEGY -->
+    <section id="strategy">
+      <div class="flex" style="margin-bottom:8px">
+        <select id="symbolSel">
+          <option value="R_10">Volatility 10 Index</option>
+          <option value="R_10_1HZ">Volatility 10 (1s) Index</option>
+          <option value="R_25">Volatility 25 Index</option>
+          <option value="R_25_1HZ">Volatility 25 (1s) Index</option>
+          <option value="R_30">Volatility 30 Index</option>
+          <option value="R_30_1HZ">Volatility 30 (1s) Index</option>
+          <option value="R_50">Volatility 50 Index</option>
+          <option value="R_50_1HZ">Volatility 50 (1s) Index</option>
+          <option value="R_75">Volatility 75 Index</option>
+          <option value="R_75_1HZ">Volatility 75 (1s) Index</option>
+          <option value="R_100">Volatility 100 Index</option>
+          <option value="R_100_1HZ">Volatility 100 (1s) Index</option>
+        </select>
+
+        <div class="switch" id="modeSwitch">
+          <div class="s active" data-mode="matches">Matches</div>
+          <div class="s" data-mode="differs">Differs</div>
+          <div class="s" data-mode="even">Even</div>
+          <div class="s" data-mode="odd">Odd</div>
+          <div class="s" data-mode="over">Over</div>
+          <div class="s" data-mode="under">Under</div>
         </div>
 
-        <div class="legend"><span class="dot green"></span>Most frequent &nbsp; <span class="dot red"></span>Least frequent</div>
-        <div id="digitGrid" class="digits"></div>
-        <div class="lastTicks">
-          <div><strong>Last Ticks</strong></div>
-          <code id="ticksArea"></code>
-        </div>
+        <label>Digit: <input id="digitInput" type="number" min="0" max="9" value="9" class="select" style="width:70px"></label>
+        <label>Ticks: <input id="tickCount" type="number" min="1" max="10" value="3" class="select" style="width:70px"></label>
+
+        <button class="btn black" onclick="startStrategy()">Start</button>
+        <button class="btn ghost" onclick="resetStrategy()">Reset</button>
       </div>
+
+      <div class="digits" id="digitsGrid"></div>
+
+      <div class="trail" id="trail"></div>
+      <div class="note" id="strategyNote" style="margin-top:10px">Waiting for ticks…</div>
     </section>
 
     <!-- TUTORIAL -->
     <section id="tutorial">
-      <div class="card">
-        <h4>Tutorial</h4>
-        <p>1) Sign in (top-right) → 2) Pick Demo in the dropdown → 3) Go to <em>Strategies</em> and watch the live last-digit stats → 4) Use <em>Run Bot</em> when ready.</p>
-      </div>
+      <div class="note">Tutorials and safety tips will appear here.</div>
     </section>
-
   </main>
 
-  <!-- SLIDE-UP RUN BAR -->
-  <div id="runbar" class="runbar">
-    <div class="runHandle" onclick="toggleRunbar()">
-      <div><strong>Run Bot</strong> — tap to expand</div>
-      <button id="runBtn" class="btn">Run</button>
+  <!-- RUN BOT BAR -->
+  <div class="runbar">
+    <div class="wrap">
+      <div class="badge">
+        <button class="runbtn" onclick="toggleTray()">▶ Run Bot</button>
+        <div class="stat">Runs: <span class="v" id="runsV">0</span></div>
+        <div class="stat">Wins: <span class="v" id="winsV">0</span></div>
+        <div class="stat">Losses: <span class="v" id="lossesV">0</span></div>
+        <div class="stat">P/L: <span class="v pl" id="plV">$0.00</span></div>
+      </div>
     </div>
-    <div class="runBody">
+  </div>
+
+  <div class="tray" id="tray">
+    <div class="wrap" style="padding:14px 0">
       <div class="stats">
-        <div class="stat"><div class="label">Runs</div><div id="stRuns" class="val">0</div></div>
-        <div class="stat"><div class="label">Wins</div><div id="stWins" class="val">0</div></div>
-        <div class="stat"><div class="label">Losses</div><div id="stLosses" class="val">0</div></div>
-        <div class="stat"><div class="label">Profit</div><div id="stProfit" class="val">0.00</div></div>
+        <div class="stat">Last stake: <span class="v" id="stakeV">$0.00</span></div>
+        <div class="stat">Last result: <span class="v" id="lastRes">—</span></div>
+        <div class="stat">Last digit: <span class="v" id="lastDigit">—</span></div>
       </div>
-      <div class="toggles">
-        <label><input id="simToggle" class="switch" type="checkbox" /> <span style="margin-left:6px">Demo Trading</span></label>
-        <label><input id="liveToggle" class="switch" type="checkbox" disabled /> <span style="margin-left:6px">Real Trading</span></label>
-      </div>
-      <div id="runLog" class="log"></div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn" onclick="resetStats()">Reset</button>
-        <button class="btn" onclick="toggleRunbar()">Collapse</button>
+      <div class="note" style="margin-top:10px">
+        Bot purchases are disabled by default for safety. After logging in, enable purchases in settings (⋮) if you want the bot to place real orders.
       </div>
     </div>
   </div>
 
 <script>
-/* ===============================
-   CONFIG
-================================ */
 const APP_ID = 96503;
-const BRAND = 'deriv';
-const LANG = 'EN';
-const REDIRECT_URI = location.origin + location.pathname; // change if your app requires fixed redirect
+const OAUTH = `https://oauth.deriv.com/oauth2/authorize?app_id=${APP_ID}&l=EN&brand=deriv`;
+const $ = (q)=>document.querySelector(q);
+const $$ = (q)=>document.querySelectorAll(q);
+function fmt(n){return (Number(n)||0).toLocaleString(undefined,{style:'currency',currency:'USD',maximumFractionDigits:2})}
+function toggleMenu(){ $('#kebab').classList.toggle('open'); }
+function navigate(id){$$('nav .tab').forEach(b=>b.classList.toggle('active', b.dataset.tab===id));$$('main section').forEach(s=>s.classList.toggle('active', s.id===id));}
+$('#tabsRow').addEventListener('click',e=>{ const b=e.target.closest('.tab'); if(!b) return; navigate(b.dataset.tab); });
+function toggleTheme(){document.documentElement.classList.toggle('dark');if(document.documentElement.classList.contains('dark')){document.body.style.background='#0a0a0a';document.body.style.color='#f5f5f5';}else{document.body.style.background='#fff';document.body.style.color='#111';}}
+function openSettings(){alert('Settings panel coming soon. Enable purchases here later.');}
+function openLocalUpload(){alert('Upload flow coming next. For now, use Bot Builder or Quick Strategy.');}
+function openDrive(){alert('Google Drive picker to be added.');}
+function quickStrategy(){navigate('strategy');}
 
-/* ===============================
-   HELPERS
-================================ */
-const $ = sel => document.querySelector(sel);
-const $$ = sel => Array.from(document.querySelectorAll(sel));
-const formatMoney = (n) => (Number(n).toFixed(2));
-const log = (s) => { const el = $('#runLog'); el.innerHTML = (new Date()).toLocaleTimeString() + " — " + s + "<br>" + el.innerHTML; }
-function openTab(id){
-  $$('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===id));
-  $$('section').forEach(s=>s.classList.toggle('active', s.id===id));
-  if(id==='strategies'){ ensureDigitGrid(); }
+let ws, token=null, loginid=null, is_demo=true, currency='USD';
+let last_pl = 0, runs=0, wins=0, losses=0;
+function wsSend(o){ ws && ws.readyState===1 && ws.send(JSON.stringify(o)); }
+function connectWS(){
+  ws = new WebSocket(`wss://ws.derivws.com/websockets/v3?app_id=${APP_ID}`);
+  ws.onopen = ()=>{ if(token) wsSend({authorize: token}); };
+  ws.onmessage = (msg)=>{
+    const r = JSON.parse(msg.data);
+    if(r.msg_type==='authorize'){
+      loginid = r.authorize.loginid;
+      currency = r.authorize.currency || 'USD';
+      $('#authBtns').style.display='none';
+      $('#balanceBox').style.display='flex';
+      $('#acctSwitch').value = (loginid||'').startsWith('CR')?'real':'demo';
+      $('#acctIcon').className = 'icon '+($('#acctSwitch').value==='demo'?'D':'R');
+      is_demo = $('#acctSwitch').value==='demo';
+      fetchBalance();
+      subscribeTicks(); 
+    }
+    if(r.msg_type==='balance'){
+      const b = r.balance;
+      $('#balanceAmt').textContent = fmt(b.balance);
+    }
+    if(r.msg_type==='error'){ console.warn(r.error); }
+  };
+  ws.onclose = ()=>setTimeout(connectWS, 1200);
 }
-function toggleRunbar(){
-  $('#runbar').classList.toggle('open');
+function fetchBalance(){ wsSend({balance:1, account:'current'}); }
+function logout(){ localStorage.removeItem('deriv_token'); token=null; loginid=null; location.href=location.pathname; }
+function startOAuth(){ window.location.href = OAUTH; }
+function readTokenFromURL(){
+  const u = new URL(location.href);
+  const t = u.searchParams.get('token1') || u.searchParams.get('token') || null;
+  if(t){ localStorage.setItem('deriv_token', t); token=t; }
 }
-
-/* ===============================
-   MENU (3 dots)
-================================ */
-$('#dotsBtn').addEventListener('click', ()=>{
-  $('#dotsMenu').style.display = ($('#dotsMenu').style.display==='block')?'none':'block';
+function initAuthUI(){
+  readTokenFromURL();
+  token = token || localStorage.getItem('deriv_token');
+  if(token){ $('#authBtns').style.display='none'; $('#balanceBox').style.display='flex'; }
+  else{ $('#signinBtn').addEventListener('click', (e)=>{e.preventDefault();startOAuth();}); }
+}
+$('#acctSwitch').addEventListener('change', ()=>{
+  const v = $('#acctSwitch').value;
+  is_demo = (v==='demo');
+  $('#acctIcon').className = 'icon '+(is_demo?'D':'R');
+  fetchBalance();
 });
-document.addEventListener('click', (e)=>{
-  if(!e.target.closest('#dotsBtn') && !e.target.closest('#dotsMenu')){
-    $('#dotsMenu').style.display='none';
+
+const digitsData = Array.from({length:10}, (_,d)=>({d, count:0}));
+let tickTrail=[];
+let mode='matches', targetDigit=9, needTicks=3, gotTicks=0;
+let streamId=null, currentSymbol='R_100';
+
+function buildDigits(){
+  const host = $('#digitsGrid'); host.innerHTML='';
+  digitsData.forEach(({d})=>{
+    const el = document.createElement('div'); el.className='digit'; el.id='digit-'+d;
+    el.innerHTML=`<div class="marker"><div class="dot"></div></div>
+      <div class="n">${d}</div>
+      <div class="pct" id="pct-${d}">0%</div>`;
+    host.appendChild(el);
+  });
+}
+function updateDigitStyles(){
+  const total = digitsData.reduce((a,b)=>a+b.count,0);
+  let most=-1, least=-1, mv=-1, lv=1e9;
+  digitsData.forEach(o=>{ if(o.count>mv){mv=o.count;most=o.d} if(o.count<lv){lv=o.count;least=o.d} });
+  digitsData.forEach(o=>{
+    const el = $('#digit-'+o.d);
+    el.classList.remove('most','least');
+    if(o.d===most) el.classList.add('most');
+    if(o.d===least) el.classList.add('least');
+    $('#pct-'+o.d).textContent = total? Math.round((o.count*100)/total)+'%':'0%';
+  });
+}
+function flashDigit(d, hit){
+  const el = $('#digit-'+d);
+  el.classList.remove('hit','miss'); void el.offsetWidth;
+  if(hit){ el.classList.add('hit'); } else { el.classList.add('miss'); }
+  setTimeout(()=>{el.classList.remove('hit','miss');}, 350);
+}
+function pushTrail(d){
+  tickTrail.unshift(d);
+  if(tickTrail.length>6) tickTrail.pop();
+  const tHost = $('#trail'); tHost.innerHTML='';
+  tickTrail.forEach((v,i)=>{
+    const s = document.createElement('div'); s.className='t '+(i===0?'current':'prev'); s.textContent=String(v);
+    tHost.appendChild(s);
+  });
+}
+function startStrategy(){
+  mode = $('#modeSwitch .s.active').dataset.mode;
+  targetDigit = Math.min(9, Math.max(0, parseInt($('#digitInput').value||'9',10)));
+  needTicks = Math.min(10, Math.max(1, parseInt($('#tickCount').value||'3',10)));
+  gotTicks = 0;
+  $('#strategyNote').textContent = 'Running…';
+}
+function resetStrategy(){
+  digitsData.forEach(o=>o.count=0); updateDigitStyles();
+  tickTrail=[]; $('#trail').innerHTML='';
+  gotTicks=0; $('#strategyNote').textContent = 'Waiting for ticks…';
+  $$('.digit').forEach(el=>el.classList.remove('hit','miss'));
+}
+$('#modeSwitch').addEventListener('click', (e)=>{
+  const s=e.target.closest('.s'); if(!s) return;
+  $$('#modeSwitch .s').forEach(x=>x.classList.remove('active'));
+  s.classList.add('active'); mode=s.dataset.mode;
+});
+$('#symbolSel').addEventListener('change', ()=>{
+  currentSymbol = $('#symbolSel').value;
+  subscribeTicks(true);
+});
+
+function subscribeTicks(restart=false){
+  if(!ws) return;
+  if(streamId){ wsSend({forget: streamId}); streamId=null; }
+  wsSend({ticks: currentSymbol, subscribe:1});
+}
+function handleTick(q){
+  const price = Number(q.quote);
+  const d = Math.abs(Math.floor(price*10)%10);
+  digitsData[d].count++;
+  updateDigitStyles();
+  flashDigit(d, checkHit(d));
+  pushTrail(d);
+  $('#lastDigit').textContent = d;
+
+  if(gotTicks<needTicks) gotTicks++;
+  if(gotTicks===needTicks){
+    runs++; $('#runsV').textContent=runs;
+    const hit = checkHit(d);
+    if(hit){ wins++; $('#winsV').textContent=wins; last_pl+=1; }
+    else{ losses++; $('#lossesV').textContent=losses; last_pl-=1; }
+    updatePL();
+    gotTicks=0;
   }
-});
-$('#darkModeBtn').addEventListener('click', ()=>{
-  document.body.classList.toggle('dark');
-});
-$('#logoutBtn').addEventListener('click', ()=>{
-  localStorage.removeItem('dbrain_tokens');
-  localStorage.removeItem('dbrain_selected');
-  location.reload();
-});
-
-/* ===============================
-   AUTH / OAUTH & WEBSOCKET
-================================ */
-let WS=null;
-let TOKENS = {};   // { demo: '...', real: '...' }
-let SELECTED = null; // 'demo'|'real'
-let currency = 'USD';
-
-function oauthUrl(){
-  const url = new URL('https://oauth.deriv.com/oauth2/authorize');
-  url.searchParams.set('app_id', APP_ID);
-  url.searchParams.set('brand', BRAND);
-  url.searchParams.set('l', LANG);
-  url.searchParams.set('redirect_uri', REDIRECT_URI);
-  // request both demo + real
-  url.searchParams.set('scope', 'read,trade');
-  return url.toString();
+}
+function checkHit(d){
+  if(mode==='matches') return d===targetDigit;
+  if(mode==='differs') return d!==targetDigit;
+  if(mode==='even') return d%2===0;
+  if(mode==='odd') return d%2===1;
+  if(mode==='over') return d>targetDigit;
+  if(mode==='under') return d<targetDigit;
+  return false;
+}
+function updatePL(){
+  const el = $('#plV');
+  el.textContent = (last_pl>=0?'+':'')+fmt(last_pl);
+  el.className = 'v pl '+(last_pl>=0?'plus':'minus');
 }
 
-// parse tokens from URL hash: token1, token2, acct1, landing_company_short1, ...
-(function captureTokensFromUrl(){
-  if(location.hash && /token1=/.test(location.hash)){
-    const h = new URLSearchParams(location.hash.replace(/^#/, ''));
-    // Often token1 == real, token2 == demo (but we detect by landing company short)
-    const map = {};
-    for(const [k,v] of h.entries()){ map[k]=v; }
-    const out = {};
-    // Try to detect by landing_company_short
-    // Fallback: token2 -> demo, token1 -> real
-    if(map.landing_company_short1==='virtual' || map.is_virtual1==='1'){ out.demo = map.token1; }
-    if(map.landing_company_short2==='virtual' || map.is_virtual2==='1'){ out.demo = map.token2; }
-    if(!out.demo && map.token2) out.demo = map.token2;
-    if(map.token1) out.real = map.token1;
-    // store
-    TOKENS = {...TOKENS, ...out};
-    localStorage.setItem('dbrain_tokens', JSON.stringify(TOKENS));
-    // Clean hash to avoid re-capture
-    history.replaceState(null, '', REDIRECT_URI);
-  }
-})();
+function toggleTray(){ $('#tray').classList.toggle('open'); }
 
-(function loadStoredTokens(){
-  try{
-    const t = JSON.parse(localStorage.getItem('dbrain_tokens')||'{}');
-    TOKENS = t;
-    SELECTED = localStorage.getItem('dbrain_selected');
-  }catch(e){}
-})();
+function boot(){ buildDigits(); initAuthUI(); connectWS(); }
+boot();
 
-function ensureWS(){
-  if(WS && WS.readyState===1) return;
-  WS = new WebSocket(wss://ws.derivws.com/websockets/v3?app_id=${APP_ID});
-  WS.onopen = ()=>{ /* noop until authorize */ };
-  WS.onclose = ()=>{ /* try to reconnect lazily */ };
-  WS.onmessage = (msg)=>{
-    const data = JSON.parse(msg.data);
-    if(data.msg_type==='authorize'){
-      currency = data.authorize.currency || 'USD';
-      showBalanceUI();
-      requestBalance();
-    }
-    if(data.msg_type==='balance'){
-      const bal = data.balance?.balance;
-      if(typeof bal!=='undefined'){
-        $('#balValue').textContent = formatMoney(bal) + ' ' + currency;
-      }
-    }
-    if(data.msg_type==='tick'){
-      handleTick(data.tick);
-    }
-    if(data.msg_type==='proposal'){
-      log(Proposal: ${data.proposal.ask_price} payout ${data.proposal.payout});
-    }
-    if(data.msg_type==='buy'){
-      log(Bought: ${data.buy.contract_id} | price ${data.buy.buy_price});
-    }
-    if(data.error){
-      log("Error: " + (data.error.message||'unknown'));
+// Rebind connectWS to also route tick stream
+const _connectWS = connectWS;
+connectWS = function(){
+  ws = new WebSocket(`wss://ws.derivws.com/websockets/v3?app_id=${APP_ID}`);
+  ws.onopen = ()=>{ if(token) wsSend({authorize: token}); };
+  ws.onmessage = (msg)=>{
+    const r = JSON.parse(msg.data);
+    if(r.msg_type==='authorize'){
+      loginid = r.authorize.loginid;
+      currency = r.authorize.currency || 'USD';
+      $('#authBtns').style.display='none';
+      $('#balanceBox').style.display='flex';
+      $('#acctSwitch').value = (loginid||'').startsWith('CR')?'real':'demo';
+      $('#acctIcon').className = 'icon '+($('#acctSwitch').value==='demo'?'D':'R');
+      is_demo = $('#acctSwitch').value==='demo';
+      fetchBalance();
+      subscribeTicks();
+    } else if(r.msg_type==='balance'){
+      const b = r.balance;
+      $('#balanceAmt').textContent = fmt(b.balance);
+    } else if(r.msg_type==='tick'){
+      handleTick(r.tick);
+    } else if(r.msg_type==='error'){
+      console.warn(r.error);
     }
   };
+  ws.onclose = ()=>setTimeout(connectWS, 1200);
 }
-function wsSend(o){ ensureWS(); WS.send(JSON.stringify(o)); }
-
-function doAuthorize(kind){ // kind: 'demo'|'real'
-  const token = TOKENS[kind];
-  if(!token){ log(No ${kind} token available.); return; }
-  wsSend({authorize: token});
-}
-
-function requestBalance(){
-  wsSend({balance:1, subscribe:1});
-}
-
-function showBalanceUI(){
-  const hasAny = TOKENS.demo || TOKENS.real;
-  $('#balanceWrap').style.display = hasAny ? 'inline-flex' : 'none';
-  // build dropdown
-  const sel = $('#acctSwitch');
-  sel.innerHTML = '';
-  if(TOKENS.demo) sel.innerHTML += <option value="demo">D • Demo</option>;
-  if(TOKENS.real) sel.innerHTML += <option value="real">R • Real</option>;
-  // selection
-  if(SELECTED && TOKENS[SELECTED]){
-    sel.value = SELECTED;
-  }else{
-    sel.value = TOKENS.demo ? 'demo' : (TOKENS.real ? 'real':'');
-  }
-  SELECTED = sel.value || null;
-  localStorage.setItem('dbrain_selected', SELECTED || '');
-  // icon
-  $('#balIcon').textContent = (SELECTED==='demo') ? '🅓' : '🇺🇸';
-  // authorize now
-  if(SELECTED) doAuthorize(SELECTED);
-}
-
-/* Buttons */
-$('#signinBtn').addEventListener('click', ()=>{ location.href = oauthUrl(); });
-$('#signupBtn').addEventListener('click', ()=>{ location.href = oauthUrl(); });
-
-/* If tokens exist from earlier session, reveal balance instantly (no auto-redirect) */
-if(TOKENS.demo || TOKENS.real){
-  showBalanceUI();
-}
-
-/* Switcher */
-$('#acctSwitch').addEventListener('change', (e)=>{
-  SELECTED = e.target.value;
-  localStorage.setItem('dbrain_selected', SELECTED);
-  $('#balIcon').textContent = (SELECTED==='demo') ? '🅓' : '🇺🇸';
-  doAuthorize(SELECTED);
-});
-
-/* ===============================
-   FREE BOTS (7)
-================================ */
-const FREE_BOTS = [
-  {name:'Entry Touch B-Bot', key:'entry_touch', xml:<!-- paste your Entry_Touch_BBot XML here if desired -->},
-  {name:'Digit Ranger Auto Bot', key:'digit_ranger', xml:<!-- Digit-Ranger-Auto-Bot.xml -->},
-  {name:'Premium Rise/Fall', key:'premium_rf', xml:<!-- binary-bot Premium Rise_Fall .xml -->},
-  {name:'RF MARBLE B-BOT', key:'rf_marble', xml:<!-- RF-MARBLE B-BOT.xml -->},
-  {name:'Even/Odd Sniper', key:'eo_sniper', xml:<!-- sample even/odd strategy -->},
-  {name:'Matches/Differs Pro', key:'md_pro', xml:<!-- sample matches/differs strategy -->},
-  {name:'Over/Under Scout', key:'ou_scout', xml:<!-- sample over/under strategy -->},
-];
-function paintFreeBots(){
-  const box = $('#botsList');
-  box.innerHTML = '';
-  FREE_BOTS.forEach(b=>{
-    const div = document.createElement('div');
-    div.className='botItem';
-    div.innerHTML = <h5>${b.name}</h5><div style="font-size:12px;color:#6b7280;margin-bottom:8px">Click to load into Dashboard</div><button data-k="${b.key}">Load</button>;
-    box.appendChild(div);
-  });
-  box.querySelectorAll('button').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const key = btn.dataset.k;
-      const bot = FREE_BOTS.find(x=>x.key===key);
-      $('#botXml').value = bot.xml || '<!-- Bot XML here -->';
-      openTab('dashboard');
-      log(Loaded free bot: ${bot.name});
-    });
-  });
-}
-paintFreeBots();
-
-/* Dashboard: load from Drive URL (simple fetch if CORS allows) */
-$('#loadDrive').addEventListener('click', async ()=>{
-  const url = $('#driveUrl').value.trim();
-  if(!url) return;
-  try{
-    const res = await fetch(url);
-    const txt = await res.text();
-    $('#botXml').value = txt;
-    openTab('dashboard');
-    log('Bot loaded from Drive URL.');
-  }catch(e){
-    log('Failed to load from Drive URL (CORS).');
-  }
-});
-$('#localBot').addEventListener('change', async (e)=>{
-  const f = e.target.files[0];
-  if(!f) return;
-  const txt = await f.text();
-  $('#botXml').value = txt;
-  log('Local bot loaded.');
-});
-function loadDefaultBot(){
-  $('#botXml').value = $('#defaultBot').value;
-  openTab('dashboard');
-  log('Default bot moved to Dashboard.');
-}
-
-/* ===============================
-   STRATEGY: Live Last-Digit Analyzer
-================================ */
-let tickSub = null;
-let tickSymbol = null;
-let ticks = [];
-let freq = Array(10).fill(0);
-function ensureDigitGrid(){
-  const g = $('#digitGrid');
-  if(g.children.length) return;
-  for(let d=0; d<10; d++){
-    const cell = document.createElement('div');
-    cell.className='digitCell';
-    cell.id='dg'+d;
-    cell.innerHTML = <div class="d">${d}</div><div class="p">0%</div>;
-    g.appendChild(cell);
-  }
-}
-function resetDigits(){
-  ticks = [];
-  freq = Array(10).fill(0);
-  for(let d=0; d<10; d++){
-    const c = $('#dg'+d);
-    c.querySelector('.p').textContent = '0%';
-    c.classList.remove('win','lose');
-  }
-  $('#ticksArea').textContent = '';
-}
-function subscribeTicks(symbol){
-  ensureWS();
-  if(tickSub){ wsSend({forget: tickSub}); tickSub=null; }
-  resetDigits();
-  tickSymbol = symbol;
-  wsSend({ticks: symbol, subscribe:1});
-}
-function handleTick(t){
-  if(!t) return;
-  const quote = Number(t.quote);
-  const last = String(quote.toFixed(2)).replace(/\D/g,'').slice(-1); // last digit
-  const d = Number(last);
-  ticks.unshift({epoch:t.epoch, quote, d});
-  if(ticks.length>200) ticks.pop();
-  // update freq
-  const count = ticks.length;
-  freq[d] += 1;
-  // compute percentages
-  const pct = freq.map(x=> Math.round((x/count)*100) || 0);
-  // color min/max
-  const maxv = Math.max(...pct);
-  const minv = Math.min(...pct);
-  for(let i=0;i<10;i++){
-    const cell = $('#dg'+i);
-    cell.querySelector('.p').textContent = pct[i] + '%';
-    cell.classList.remove('win','lose');
-    if(pct[i]===maxv) cell.classList.add('win');
-    if(pct[i]===minv) cell.classList.add('lose');
-  }
-  // highlight the current last digit (green if match, red if not) relative to prediction
-  const pred = Number($('#strPredict').value);
-  const mode = $('#strMode').value;
-  if(!Number.isNaN(pred)){
-    for(let i=0;i<10;i++){ $('#dg'+i).style.outline='none'; }
-    // apply rule
-    let greenDigits = [];
-    if(mode==='match') greenDigits=[pred];
-    else if(mode==='differs') greenDigits=[0,1,2,3,4,5,6,7,8,9].filter(x=>x!==pred);
-    else if(mode==='odd') greenDigits=[1,3,5,7,9];
-    else if(mode==='even') greenDigits=[0,2,4,6,8];
-    else if(mode==='over') greenDigits=[5,6,7,8,9];
-    else if(mode==='under') greenDigits=[0,1,2,3,4];
-
-    greenDigits.forEach(i=>{ $('#dg'+i).style.outline='2px solid var(--ok)'; });
-    const redDigits = [0,1,2,3,4,5,6,7,8,9].filter(i=>!greenDigits.includes(i));
-    redDigits.forEach(i=>{ $('#dg'+i).style.outline='2px solid var(--bad)'; });
-
-    // for the very latest tick, mark correctness
-    const latest = d;
-    // If the latest is in greenDigits → correct (green), else red
-    const latestCell = $('#dg'+latest);
-    latestCell.style.boxShadow = '0 0 0 3px rgba(0,0,0,0.0)';
-    latestCell.animate([{transform:'scale(1.0)'},{transform:'scale(1.05)'},{transform:'scale(1.0)'}],{duration:350});
-  }
-
-  // last ticks list
-  $('#ticksArea').textContent = ticks.slice(0,40).map(x=>${x.quote.toFixed(2)} (d:${x.d})).join('\n');
-}
-$('#strStart').addEventListener('click', ()=>{
-  const sym = $('#strSymbol').value;
-  subscribeTicks(sym);
-});
-$('#strStop').addEventListener('click', ()=>{
-  if(tickSub){ wsSend({forget: tickSub}); tickSub=null; }
-});
-/* Remember subscription id */
-ensureWS();
-WS && (WS.onmessage = (m=>{
-  const data = JSON.parse(m.data);
-  if(data.msg_type==='authorize'){
-    currency = data.authorize.currency || 'USD';
-    showBalanceUI();
-    requestBalance();
-  }
-  if(data.msg_type==='balance'){
-    const bal = data.balance?.balance;
-    if(typeof bal!=='undefined'){
-      $('#balValue').textContent = formatMoney(bal) + ' ' + currency;
-    }
-  }
-  if(data.msg_type==='tick'){
-    // capture subscription id for forget
-    if(data.subscription && data.subscription.id) tickSub = data.subscription.id;
-    handleTick(data.tick);
-  }
-  if(data.msg_type==='proposal'){
-    log(Proposal: ${data.proposal.ask_price} payout ${data.proposal.payout});
-  }
-  if(data.msg_type==='buy'){
-    log(Bought: ${data.buy.contract_id} | price ${data.buy.buy_price});
-  }
-  if(data.error){
-    log("Error: " + (data.error.message||'unknown'));
-  }
-}));
-
-/* ===============================
-   RUN BOT (simulation / demo trading)
-================================ */
-let running=false, runs=0, wins=0, losses=0, profit=0;
-
-function resetStats(){
-  runs=wins=losses=0; profit=0;
-  $('#stRuns').textContent=runs;
-  $('#stWins').textContent=wins;
-  $('#stLosses').textContent=losses;
-  $('#stProfit').textContent=profit.toFixed(2);
-  $('#runLog').innerHTML='';
-}
-
-$('#runBtn').addEventListener('click', async (e)=>{
-  if(!running){
-    running=true; e.target.textContent='Stop';
-    log('Bot started.');
-    startLoop();
-  }else{
-    running=false; e.target.textContent='Run';
-    log('Bot stopped.');
-  }
-});
-
-async function startLoop(){
-  const symbol = $('#symbolSel').value || 'R_100';
-  const stake = Number($('#stake').value||1);
-  const ticksDur = Number($('#duration').value||3);
-  const doDemoTrade = $('#simToggle').checked; // demo trading if authorized with demo
-  while(running){
-    runs++; $('#stRuns').textContent=runs;
-    const outcome = Math.random()<0.55 ? 'WIN':'LOSS'; // simulation outcome
-    if(doDemoTrade && SELECTED==='demo'){
-      // Minimal legit flow: get proposal and buy a RISE/FALL contract for ticksDur
-      try{
-        doAuthorize('demo');
-        // proposal (simple example: RISE over next ticksDur)
-        wsSend({
-          proposal:1,
-          amount: stake,
-          basis: 'stake',
-          contract_type: 'RISE',
-          currency,
-          duration: ticksDur,
-          duration_unit: 't',
-          symbol: symbol
-        });
-        log(Proposal requested ${symbol} ticks:${ticksDur} stake:${stake});
-      }catch(err){
-        log('Demo trade error: '+(err.message||err));
-      }
-    }
-    if(outcome==='WIN'){ wins++; profit += stake; }
-    else { losses++; profit -= stake; }
-    $('#stWins').textContent=wins;
-    $('#stLosses').textContent=losses;
-    const pEl = $('#stProfit'); pEl.textContent=profit.toFixed(2); pEl.style.color = profit>=0 ? '#86efac' : '#fecaca';
-    log(Result: ${outcome} | P/L: ${profit.toFixed(2)});
-    // wait a little
-    await new Promise(r=>setTimeout(r, 1200));
-  }
-}
-
-/* ===============================
-   NAV TABS
-================================ */
-$('#tabs').addEventListener('click',(e)=>{
-  const t = e.target.closest('.tab'); if(!t) return;
-  openTab(t.dataset.tab);
-});
-
-/* ===============================
-   SMALL UX TOUCHES
-================================ */
-document.addEventListener('keydown', (e)=>{
-  if(e.key==='Escape'){ $('#runbar').classList.remove('open'); }
-});
-
-/* Initial state: hide auth buttons if tokens present */
-(function initAuthButtons(){
-  const hasAny = TOKENS.demo || TOKENS.real;
-  $('#signinBtn').style.display = hasAny ? 'none' : 'inline-block';
-  $('#signupBtn').style.display = hasAny ? 'none' : 'inline-block';
-})();
 </script>
 </body>
 </html>
